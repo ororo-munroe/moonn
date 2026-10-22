@@ -251,7 +251,7 @@
     <!-- AUTH -->
     <div id="auth-section">
         <p>Please enter your CONE ID to access Moon:</p>
-        <input type="text" id="cone-id-input" placeholder="Enter CONE ID (e.g. CONE844)">
+        <input type="text" id="cone-id-input" placeholder="Enter CONE ID (e.g. CONE844)" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" style="font-size:16px;">
         <button id="submit-cone-id">Submit</button>
         <p id="auth-message"></p>
     </div>
@@ -470,7 +470,7 @@ function showToast(msg, duration = 4000) {
 
     const extractOpener = t => t.trim().toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(Boolean).slice(0,4).join(' ');
     const extractCloser = t => {
-        const sents = t.trim().split(/(?<=[.?!])\s+/);
+        const sents = t.trim().match(/[^.?!]+[.?!]*/g) || [t.trim()];
         return (sents[sents.length-1]||'').toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(Boolean).slice(-5).join(' ');
     };
     const getOpenerHistory = () => { try { return JSON.parse(GM_getValue('moon_opener_history','[]')); } catch(e){ return []; } };
@@ -654,7 +654,7 @@ function showToast(msg, duration = 4000) {
     }
 
     function handleConeSubmit() {
-        const id=coneIdInput.value.trim();
+        const id=coneIdInput.value.trim().toUpperCase().replace(/\s+/g,'');
         if (!id) { authMessage.textContent='CONE ID cannot be empty.'; return; }
         if (authorizedConeIds.includes(id)) {
             GM_setValue('user_cone_id',id); GM_setValue('user_auth_last_checked_timestamp',Date.now());
@@ -723,7 +723,7 @@ function showToast(msg, duration = 4000) {
         if (text.includes(':')) violations.push('Colon');
         if (text.includes('"')||text.includes('\u201C')||text.includes('\u201D')||text.includes('\u201E')||text.includes('\u201F')) violations.push('Double quotes');
         if (lo.includes('new albany')||lo.includes('albany')) violations.push('Mentioning Albany');
-        if (/(?<![a-zA-Z])'|'(?![a-zA-Z])/.test(text)) violations.push('Single quote quotation');
+        if (/(^|[^a-zA-Z])'|'([^a-zA-Z]|$)/.test(text)) violations.push('Single quote quotation');
         return {safe:violations.length===0, violations};
     }
 
